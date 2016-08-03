@@ -16,7 +16,7 @@
 *
 * LICENSE@@@ */
 
-#include <cjson/json.h>
+#include <json.h>
 #include <glib/gstdio.h>
 #include <glib.h>
 #include <string.h>

@@ -32,7 +32,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <cjson/json.h>
+#include <json.h>
 
 #include "log.h"
 
