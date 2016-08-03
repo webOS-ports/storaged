@@ -18,4 +18,6 @@
 
 
 KERNEL=="usb_gadget", SUBSYSTEM=="platform", DRIVER=="usb_gadget", ENV{G_SUBSYSTEM}=="storage", ACTION=="change", RUN+="@WEBOS_INSTALL_SYSCONFDIR@/udev/scripts/storage.sh $ENV{G_ACTION} $ENV{G_MEDIA_LOADED}$ENV{G_HOST_CONNECTED}$ENV{G_MEDIA_REQUESTED}$ENV{G_BUS_SUSPENDED}"
+SUBSYSTEM=="android_usb", ACTION=="change", ATTR{state}=="CONFIGURED", RUN+="@WEBOS_INSTALL_SYSCONFDIR@/udev/scripts/storage.sh HOST_STATE_CHANGED 1"
+SUBSYSTEM=="android_usb", ACTION=="change", ATTR{state}=="DISCONNECTED", RUN+="@WEBOS_INSTALL_SYSCONFDIR@/udev/scripts/storage.sh HOST_STATE_CHANGED 0"
 
