@@ -39,9 +39,9 @@ pkg_check_modules(LUNASERVICE2 REQUIRED luna-service2)
 include_directories(${LUNASERVICE2_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${LUNASERVICE2_CFLAGS_OTHER})
 
-pkg_check_modules(CJSON REQUIRED cjson)
-include_directories(${CJSON_INCLUDE_DIRS})
-webos_add_compiler_flags(ALL ${CJSON_CFLAGS_OTHER})
+pkg_check_modules(JSON REQUIRED json-c)
+include_directories(${JSON_INCLUDE_DIRS})
+webos_add_compiler_flags(ALL ${JSON_CFLAGS_OTHER})
 
 pkg_check_modules(NYXLIB REQUIRED nyx)
 include_directories(${NYXLIB_INCLUDE_DIRS})
@@ -72,7 +72,7 @@ add_executable(storaged src/diskmode.c src/erase.c src/log.c src/main.c src/sign
 target_link_libraries(storaged 
                         ${GLIB2_LDFLAGS} 
                         ${LUNASERVICE2_LDFLAGS}
-                        ${CJSON_LDFLAGS}
+                        ${JSON_LDFLAGS}
                         ${NYXLIB_LDFLAGS})
 webos_build_program(ADMIN)
 webos_build_system_bus_files()

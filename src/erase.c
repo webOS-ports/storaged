@@ -16,7 +16,7 @@
 *
 * LICENSE@@@ */
 
-#include <cjson/json.h>
+#include <json.h>
 #include <glib/gstdio.h>
 #include <glib.h>
 #include <string.h>
@@ -82,7 +82,7 @@ Erase(LSHandle* pHandle, LSMessage* pMessage, EraseType_t type)
     }
 
     nyx_error_t ret = 0;
-    ret = nyx_system_erase_partition(nyxSystem,nyx_type,error_text);
+    ret = nyx_system_erase_partition(nyxSystem,nyx_type);
     if(ret != NYX_ERROR_NONE) {
     	g_debug("Failed to execute nyx_system_erase_partition, ret : %d",ret);
     	error_text = g_strdup_printf("Failed to execute NYX erase API");
