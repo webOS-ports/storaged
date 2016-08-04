@@ -9,6 +9,6 @@
             "service":"com.palm.storage",
             "inbound":["*"],
             "outbound":["*"]
-        },
+        }
     ]
 }

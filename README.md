@@ -20,11 +20,11 @@ Below are the tools and libraries (and their minimum versions) required to build
 * gcc 4.6.3
 * glib-2.0 2.32.1
 * make (any version)
-* openwebos/cjson 1.8.0
 * openwebos/cmake-modules-webos 1.0.0 RC3
 * openwebos/luna-service2 3.0.0
 * openwebos/nyx-lib 4.0.0 RC1
 * pkg-config 0.26
+* json-c 0.12
 
 ## Building
 
