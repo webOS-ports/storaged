@@ -243,7 +243,7 @@ handle_cableLS( LSHandle* lsh, LSMessage* message, void* user_data )
 
     const char *payload = LSMessageGetPayload(message);
     struct json_object *object = json_tokener_parse(payload);
-    if (is_error(object)) {
+    if (!object) {
         answer = "{\"returnValue\":false,\"errorText\":\"param 'connected' missing or invalid\"}";
         goto send;
     }
@@ -261,7 +261,7 @@ send:
         LSREPORT( lserror );
     }
 
-    if (!is_error(object)) json_object_put(object);
+    if (object) json_object_put(object);
 
     return true;
 } /* handle_cableLS */
@@ -331,7 +331,7 @@ handle_mount_on_hostLS( LSHandle* lsh, LSMessage* message, void* user_data )
 
     const char *payload = LSMessageGetPayload(message);
     struct json_object *object = json_tokener_parse(payload);
-    if (is_error(object)) {
+    if (!object) {
     	answer = "{\"returnValue\":false,\"errorText\":\"param 'connected' missing or invalid\"}";
     	goto send;
     }
@@ -350,7 +350,7 @@ send:
     }
     LSErrorFree( &lserror );
 
-    if (!is_error(object)) json_object_put(object);
+    if (object) json_object_put(object);
 
     return true;
 } /* handle_mount_on_host */
@@ -484,7 +484,7 @@ handle_enter_mass_storage_mode( LSHandle* lsh, LSMessage* message, void* user_da
 
     const char *payload = LSMessageGetPayload(message);
     struct json_object *object = json_tokener_parse(payload);
-    if (is_error(object)) {
+    if (!object) {
         errStr = "{\"returnValue\":false,\"errorText\":\"param 'user-confirmed' missing or invalid\"}";
         goto err;
     }
@@ -522,7 +522,7 @@ err:
 
     LSErrorFree( &lserror );
 
-    if (!is_error(object))
+    if (object)
         json_object_put(object);
 
     g_debug( "%s() exiting", __func__ );

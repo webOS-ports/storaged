@@ -51,7 +51,7 @@ void reset_lifetime_timer();
         const char *payload = LSMessageGetPayload(message); \
         g_debug( "%s(%s)", __func__, (NULL == payload) ? "{}" : payload ); \
         struct json_object *object = json_tokener_parse(payload);	\
-        if(is_error(object))	break;	\
+        if(!object)	break;	\
         const char *errorCode; \
         const char *errorText; \
         errorCode =  json_object_get_string(json_object_object_get(object, "errorCode"));	\
