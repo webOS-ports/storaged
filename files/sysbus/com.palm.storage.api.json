@@ -1,0 +1,21 @@
+{
+    "system": [
+        "com.palm.storage/diskmode/changed",
+        "com.palm.storage/diskmode/avail",
+        "com.palm.storage/diskmode/enterMSM",
+        "com.palm.storage/diskmode/busSuspended",
+        "com.palm.storage/diskmode/hostIsConnected",
+        "com.palm.storage/diskmode/queryMSMStatus",
+        "com.palm.storage/erase/Wipe",
+        "com.palm.storage/erase/EraseVar",
+        "com.palm.storage/erase/EraseAll",
+        "com.palm.storage/erase/EraseMedia",
+        "com.palm.storage/storaged/PartitionAvail",
+        "com.palm.storage/storaged/MSMAvail",
+        "com.palm.storage/storaged/MSMProgress",
+        "com.palm.storage/storaged/MSMEntry",
+        "com.palm.storage/storaged/MSMFscking",
+        "com.palm.storage/storaged/MSMStatus"
+    ]
+}
+
