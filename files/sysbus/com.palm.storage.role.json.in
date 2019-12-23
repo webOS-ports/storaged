@@ -1,9 +1,7 @@
 {
-    "role": {
-        "exeName":"@WEBOS_INSTALL_SBINDIR@/storaged",
-        "type": "regular",
-        "allowedNames": ["com.palm.storage"]
-    },
+    "exeName":"@WEBOS_INSTALL_SBINDIR@/storaged",
+    "type": "regular",
+    "allowedNames": ["com.palm.storage"],
     "permissions": [
         {
             "service":"com.palm.storage",
