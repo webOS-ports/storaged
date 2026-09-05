@@ -481,20 +481,18 @@ handle_enter_mass_storage_mode( LSHandle* lsh, LSMessage* message, void* user_da
     LSError lserror;
     LSErrorInit( &lserror );
 
-    char* errStr = "parameter user-confirmed missing";
+    const char* errStr = NULL;
 
     bool confirmed = false;
 
     const char *payload = LSMessageGetPayload(message);
     struct json_object *object = json_tokener_parse(payload);
     if (!object) {
-        errStr = "{\"returnValue\":false,\"errorText\":\"param 'user-confirmed' missing or invalid\"}";
+        errStr = "param 'user-confirmed' missing or invalid";
         goto err;
     }
 
     confirmed = json_object_get_boolean(json_object_object_get(object, "user-confirmed"));
-
-    errStr = NULL;
     if ( confirmed )
     {
         int mass_storage_mode_state = 0;
@@ -515,7 +513,7 @@ handle_enter_mass_storage_mode( LSHandle* lsh, LSMessage* message, void* user_da
 
 err:
     if ( NULL != errStr ) {
-        char* msg = g_strdup_printf( "{\"result\": false; \"errorText\":\"%s\"}",
+        char* msg = g_strdup_printf( "{\"result\": false, \"errorText\":\"%s\"}",
                 errStr );
         if ( !LSMessageReply( lsh, message, msg, &lserror ) ) {
             LSREPORT( lserror );
