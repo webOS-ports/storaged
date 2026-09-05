@@ -86,9 +86,9 @@ umount_timer_proc( gpointer data )
     g_debug( "%s()", __func__ );
     LSHandle* lsh = (LSHandle*)data;
 
-    nyx_mass_storage_mode_return_code_t ret_status;
+    nyx_mass_storage_mode_return_code_t ret_status = 0;
 
-    bool ret = nyx_mass_storage_mode_set_mode(nyxMassStorageMode,NYX_MASS_STORAGE_MODE_ENABLE, &ret_status);
+    nyx_error_t ret = nyx_mass_storage_mode_set_mode(nyxMassStorageMode,NYX_MASS_STORAGE_MODE_ENABLE, &ret_status);
 
     if( ret == NYX_ERROR_NONE) {
         finish_mass_storage_mode_transition( lsh );
@@ -170,7 +170,7 @@ handle_cable( LSHandle* lsh, bool plugIn) {
     bool know_export_state = true;
     int mass_storage_mode_state = 0;
 
-    know_export_state = nyx_mass_storage_mode_get_state(nyxMassStorageMode, &mass_storage_mode_state);
+    know_export_state = (nyx_mass_storage_mode_get_state(nyxMassStorageMode, &mass_storage_mode_state) == NYX_ERROR_NONE);
     still_exported = mass_storage_mode_state & NYX_MASS_STORAGE_MODE_MODE_ON;
 
     SHOW_ERROR(error);
