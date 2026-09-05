@@ -226,8 +226,9 @@ handle_cableLS( LSHandle* lsh, LSMessage* message, void* user_data )
     LSTRACE_LSMESSAGE(message);
     LSError lserror;
     bool result;
-    gchar* answer = "";
+    const gchar* answer;
     bool plugIn;
+    struct json_object *object = NULL;
 
     int mass_storage_mode_state = 0;
     nyx_mass_storage_mode_get_state(nyxMassStorageMode, &mass_storage_mode_state);
@@ -242,7 +243,7 @@ handle_cableLS( LSHandle* lsh, LSMessage* message, void* user_data )
     }
 
     const char *payload = LSMessageGetPayload(message);
-    struct json_object *object = json_tokener_parse(payload);
+    object = json_tokener_parse(payload);
     if (!object) {
         answer = "{\"returnValue\":false,\"errorText\":\"param 'connected' missing or invalid\"}";
         goto send;
@@ -260,6 +261,7 @@ send:
     {
         LSREPORT( lserror );
     }
+    LSErrorFree( &lserror );
 
     if (object) json_object_put(object);
 
@@ -313,8 +315,9 @@ handle_mount_on_hostLS( LSHandle* lsh, LSMessage* message, void* user_data )
 {
     LSTRACE_LSMESSAGE(message);
     LSError lserror;
-    char* answer;
+    const char* answer;
     bool connected;
+    struct json_object *object = NULL;
 
     /* IIRC, we can't have allowed mount or eject without the driver being
        involved.
@@ -330,7 +333,7 @@ handle_mount_on_hostLS( LSHandle* lsh, LSMessage* message, void* user_data )
     }
 
     const char *payload = LSMessageGetPayload(message);
-    struct json_object *object = json_tokener_parse(payload);
+    object = json_tokener_parse(payload);
     if (!object) {
     	answer = "{\"returnValue\":false,\"errorText\":\"param 'connected' missing or invalid\"}";
     	goto send;
