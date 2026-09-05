@@ -64,7 +64,7 @@ log_blame( const char* prefix )
                 GDir* fddir;
                 fddir = g_dir_open (fdpath, 0, NULL);
 
-                if (NULL != dir)
+                if (NULL != fddir)
                 {
                     const gchar *nentry;
                     gchar* exe = NULL;
@@ -74,7 +74,8 @@ log_blame( const char* prefix )
                         if (g_file_test(lnpath, G_FILE_TEST_IS_SYMLINK))
                         {
                             gchar* link = g_file_read_link (lnpath, NULL);
-                            if (g_ascii_strncasecmp (link, prefix, strlen(prefix)) == 0)
+                            if (link != NULL &&
+                                g_ascii_strncasecmp (link, prefix, strlen(prefix)) == 0)
                             {
                                 if (NULL == exe)
                                 {
