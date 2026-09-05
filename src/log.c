@@ -21,6 +21,8 @@
 #include <syslog.h>
 #include <stdbool.h>
 
+#include "log.h"
+
 static int sLogLevel = G_LOG_LEVEL_MESSAGE;
 static bool sUseSyslog = false;
 

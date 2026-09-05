@@ -16,33 +16,33 @@
 *
 * LICENSE@@@ */
 
-#ifndef _UTIL_H_
-#define _UTIL_H_
+#ifndef STORAGED_UTIL_H
+#define STORAGED_UTIL_H
 
 #include <glib.h>
 
 
-void disable_lifetime_timer();
+void disable_lifetime_timer(void);
 
-void reset_lifetime_timer();
+void reset_lifetime_timer(void);
 
 #define LSREPORT(lse) g_critical( "in %s: %s => %s", __func__, \
                                   (lse).func, (lse).message )
 
 #define SHOW_STDERR(standard_error) \
-    if (standard_error != NULL) { \
+    if ((standard_error) != NULL) { \
         if (strlen(standard_error) > 0) { \
-            g_critical( "%s: stderr: %s", __func__, standard_error ); \
+            g_critical( "%s: stderr: %s", __func__, (standard_error) ); \
         } \
         g_free(standard_error); \
-        standard_error = NULL; \
+        (standard_error) = NULL; \
     }
 
 #define SHOW_ERROR(error) \
-    if (error != NULL) { \
-        g_critical( "%s: error=>%s", __func__, error->message ); \
+    if ((error) != NULL) { \
+        g_critical( "%s: error=>%s", __func__, (error)->message ); \
         g_error_free(error); \
-        error = NULL; \
+        (error) = NULL; \
     }
 
 
@@ -50,6 +50,7 @@ void reset_lifetime_timer();
     do { \
         const char *payload = LSMessageGetPayload(message); \
         g_debug( "%s(%s)", __func__, (NULL == payload) ? "{}" : payload ); \
+        if (NULL == payload)	break;	\
         struct json_object *object = json_tokener_parse(payload);	\
         if(!object)	break;	\
         const char *errorCode; \

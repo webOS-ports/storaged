@@ -24,7 +24,7 @@
 static bool
 isNumber( const gchar* name )
 {
-    const char* sptr = name;
+    const char* sptr;
     bool passes = true;
 
     for ( sptr = name; '\0' != *sptr; ++sptr )

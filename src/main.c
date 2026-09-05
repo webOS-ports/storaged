@@ -36,6 +36,7 @@
 #include "signals.h"
 #include "log.h"
 #include "main.h"
+#include "util.h"
 
 /*
  * Notes on what storaged does
@@ -68,7 +69,7 @@
  */
 
 static GMainLoop * g_mainloop = NULL;
-static int sTimerEventSource = 0;
+static guint sTimerEventSource = 0;
 
 
 /***********************************************************************
@@ -93,7 +94,7 @@ static LockFile	sProcessLock;
  *
  * @return true on success, false if failed.
  */
-bool LockProcess(const char* component)
+static bool LockProcess(const char* component)
 {
 #define LOCKS_DIR_PATH "/tmp/run"
 
@@ -157,7 +158,7 @@ bool LockProcess(const char* component)
  * Release the lock on the pid file as previously acquired by
  * LockProcess.
  */
-void UnlockProcess(void)
+static void UnlockProcess(void)
 {
     LockFile* lock;
 
@@ -175,14 +176,14 @@ term_handler(gpointer data)
     return G_SOURCE_REMOVE;
 }
 
-gboolean
+static gboolean
 timeout_handler(gpointer data)
 {
     g_main_loop_quit(g_mainloop);
     return TRUE;
 }
 
-void
+static void
 PrintUsage(const char* progname)
 {
     printf("%s\n", progname);
@@ -195,7 +196,7 @@ PrintUsage(const char* progname)
 #define DYNAMIC_LIFETIME_MS 10000
 
 void
-disable_lifetime_timer()
+disable_lifetime_timer(void)
 {
     g_debug("%s called", __func__);
     if (sTimerEventSource != 0)
@@ -206,7 +207,7 @@ disable_lifetime_timer()
 
 //TODO: need to call this from erase API's aswell
 void
-reset_lifetime_timer()
+reset_lifetime_timer(void)
 {
     g_debug("%s called", __func__);
     disable_lifetime_timer();

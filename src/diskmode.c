@@ -41,6 +41,7 @@
 #include "signals.h"
 #include "util.h"
 #include "main.h"
+#include "diskmode.h"
 
 static guint sUmountTimerId = 0;   /* real ids always > 0 */
 static bool sNeedToRunPostScripts = false;
@@ -55,20 +56,6 @@ static bool inMSM = false, unmount = false;
 #define ETC_FSTAB    "/etc/fstab"
 #define MAX_FSCK_RETRIES 3 // number of times to try running fsck before giving up
 
-
-#define DISKMODE_ERROR diskmode_error_quark ()
-
-GQuark
-diskmode_error_quark (void)
-{
-    return g_quark_from_static_string ("storaged-diskmode");
-}
-
-enum {
-    DISKMODE_ERROR_NO_SYS_FILE,
-    DISKMODE_ERROR_SPAWN,
-    DISKMODE_ERROR_FSCK_ON_MOUNTED_PARTITION
-};
 
 static void finish_mass_storage_mode_transition( LSHandle* lsh );
 static void abort_mass_storage_mode_transition( LSHandle* lsh );
@@ -124,7 +111,7 @@ launch_customization(LSHandle* lsh)
 {
     LSError lserror;
     LSErrorInit(&lserror);
-    char* payload = "{\"subdir\":\"/" MEDIA_INTERNAL "\"}";
+    const char* payload = "{\"subdir\":\"/" MEDIA_INTERNAL "\"}";
     const char* uri = "luna://com.palm.customization/copyBinaries";
     if (!LSCallOneReply(lsh, uri, payload, NULL, NULL, NULL, &lserror)) {
         LSREPORT( lserror );
@@ -132,7 +119,7 @@ launch_customization(LSHandle* lsh)
     LSErrorFree( &lserror );
 }
 
-void handle_mass_storage_mode_exit(nyx_mass_storage_mode_return_code_t ret_status, LSHandle* lsh)
+static void handle_mass_storage_mode_exit(nyx_mass_storage_mode_return_code_t ret_status, LSHandle* lsh)
 {
     /* Let's just ignore this message if we can't get into Mass Storage Mode at all. */
     if (ret_status >= NYX_MASS_STORAGE_MODE_PARTITION_REFORMATTED)
@@ -268,8 +255,8 @@ send:
     return true;
 } /* handle_cableLS */
 
-void
-handle_mount_on_host(LSHandle *lsh, bool mount) 
+static void
+handle_mount_on_host(LSHandle *lsh, bool mount)
 {
     GError * error = NULL;
 

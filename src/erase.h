@@ -16,8 +16,8 @@
 *
 * LICENSE@@@ */
 
-#ifndef __STORAGED_ERASE_H__
-#define __STORAGED_ERASE_H__
+#ifndef STORAGED_ERASE_H
+#define STORAGED_ERASE_H
 
 #include <luna-service2/lunaservice.h>
 
