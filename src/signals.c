@@ -152,12 +152,12 @@ SignalPartitionAvail( LSHandle* lsh, const char* mountPoint, bool avail,
     const char* uri = LUNA_STORAGED MSM_CATEGORY "/" MSM_METHOD_PARTAVAIL;
     g_debug( "%s: sending %s to private %s", __func__, payload_private, uri );
 
-    if ( !LSSignalSend(lsps, uri, payload_private, &lserror ) ) {
+    if ( !LSSignalSend(lsh, uri, payload_private, &lserror ) ) {
         LSREPORT(lserror);
     }
 
     g_debug( "%s: sending %s to public %s", __func__, payload_public, uri );
-    if ( !LSSignalSend(lsps, uri, payload_public, &lserror ) ) {
+    if ( !LSSignalSend(lsh, uri, payload_public, &lserror ) ) {
         LSREPORT(lserror);
     }
 
@@ -178,12 +178,12 @@ SignalMSMStatus( LSHandle* lsh, bool inMSM)
 	const char* uri = LUNA_STORAGED MSM_CATEGORY "/" MSM_METHOD_STATUS;
 	g_debug( "%s: sending %s to private %s", __func__, payload, uri );
 
-	if ( !LSSignalSend(lsps, uri, payload, &lserror ) ) {
+	if ( !LSSignalSend(lsh, uri, payload, &lserror ) ) {
 			LSREPORT(lserror);
 	}
 
 	g_debug( "%s: sending %s to public %s", __func__, payload, uri );
-	if ( !LSSignalSend(lsps, uri, payload, &lserror ) ) {
+	if ( !LSSignalSend(lsh, uri, payload, &lserror ) ) {
 			LSREPORT(lserror);
 	}
 
