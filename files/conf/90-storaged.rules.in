@@ -21,3 +21,8 @@ KERNEL=="usb_gadget", SUBSYSTEM=="platform", DRIVER=="usb_gadget", ENV{G_SUBSYST
 SUBSYSTEM=="android_usb", ACTION=="change", ATTR{state}=="CONFIGURED", RUN+="@WEBOS_INSTALL_SYSCONFDIR@/udev/scripts/storage.sh HOST_STATE_CHANGED 1"
 SUBSYSTEM=="android_usb", ACTION=="change", ATTR{state}=="DISCONNECTED", RUN+="@WEBOS_INSTALL_SYSCONFDIR@/udev/scripts/storage.sh HOST_STATE_CHANGED 0"
 
+# configfs/libcomposite gadgets (Halium 9+ and mainline kernels): the UDC
+# emits change uevents carrying USB_STATE on cable and enumeration changes.
+SUBSYSTEM=="udc", ACTION=="change", ENV{USB_STATE}=="configured", RUN+="@WEBOS_INSTALL_SYSCONFDIR@/udev/scripts/storage.sh HOST_STATE_CHANGED 1"
+SUBSYSTEM=="udc", ACTION=="change", ENV{USB_STATE}=="not attached", RUN+="@WEBOS_INSTALL_SYSCONFDIR@/udev/scripts/storage.sh HOST_STATE_CHANGED 0"
+
