@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <glib.h>
+#include <glib-unix.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -166,10 +167,11 @@ void UnlockProcess(void)
 
 
 
-void
-term_handler(int signal)
+static gboolean
+term_handler(gpointer data)
 {
     g_main_loop_quit(g_mainloop);
+    return G_SOURCE_REMOVE;
 }
 
 gboolean
@@ -264,9 +266,10 @@ main(int argc, char **argv)
     g_log_set_default_handler(logFilter, NULL);
     g_debug( "entering %s in %s", __func__, __FILE__ );
 
-    signal(SIGTERM, term_handler);
-
     g_mainloop = g_main_loop_new(NULL, FALSE);
+
+    /* dispatched from the main loop rather than from async signal context */
+    g_unix_signal_add(SIGTERM, term_handler, NULL);
 
 
     int ret = nyx_device_open(NYX_DEVICE_SYSTEM, "Main", &nyxSystem);
