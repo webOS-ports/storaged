@@ -110,8 +110,9 @@ bool LockProcess(const char* component)
 
     snprintf(lock->path, sizeof(lock->path), "%s/%s.pid", LOCKS_DIR_PATH, component);
 
-    // open or create the lock file
-    fd = open(lock->path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    // open or create the lock file; O_NOFOLLOW guards against a symlink
+    // planted in the world-writable lock directory
+    fd = open(lock->path, O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC, S_IRUSR | S_IWUSR);
     if (fd < 0)
     {
         g_error("Failed to open lock file (err %d, %s), exiting.", errno, strerror(errno));
