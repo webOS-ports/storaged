@@ -47,6 +47,17 @@ static guint sUmountTimerId = 0;   /* real ids always > 0 */
 static bool sNeedToRunPostScripts = false;
 static bool inMSM = false, unmount = false;
 
+/* When storage mode is served over MTP (umtprd via the nyx MTP module),
+ * /media/internal stays mounted and is exported file-by-file, so the legacy
+ * block-storage dance -- unmounting the partition, waiting for open-file
+ * owners, fsck, and remount via the pre/post MSM scripts -- does not apply.
+ * Built as a compile-time constant so both paths stay compiled. */
+#ifdef USE_MTP
+static const bool sMtpMode = true;
+#else
+static const bool sMtpMode = false;
+#endif
+
 
 #define SYSTEM_SERVICE "com.palm.systemservice"
 #define TIMEOUT_SECONDS 10  /* how many seconds of inactivity before quitting */
@@ -179,20 +190,28 @@ handle_cable( LSHandle* lsh, bool plugIn) {
             g_source_remove(sUmountTimerId);
             sUmountTimerId = 0;
         }
-        if(still_exported)
-            SignalMSMFscking(lsh);
-
         nyx_mass_storage_mode_return_code_t ret_status;
-        nyx_mass_storage_mode_set_mode(nyxMassStorageMode, NYX_MASS_STORAGE_MODE_DISABLE_AFTER_FSCK, &ret_status);
+        if ( sMtpMode ) {
+            /* Just stop MTP; the partition never left, so there is nothing to
+             * fsck, remount, or report as newly available. */
+            nyx_mass_storage_mode_set_mode(nyxMassStorageMode, NYX_MASS_STORAGE_MODE_DISABLE, &ret_status);
+            inMSM = false;
+            SignalMSMStatus( lsh, false );
+        } else {
+            if(still_exported)
+                SignalMSMFscking(lsh);
 
-        handle_mass_storage_mode_exit(ret_status,lsh);
+            nyx_mass_storage_mode_set_mode(nyxMassStorageMode, NYX_MASS_STORAGE_MODE_DISABLE_AFTER_FSCK, &ret_status);
 
-        if (sNeedToRunPostScripts) {
-            execute_scripts(POSTMSM_SCRIPT_DIR, &error);
-            SHOW_ERROR(error);
+            handle_mass_storage_mode_exit(ret_status,lsh);
+
+            if (sNeedToRunPostScripts) {
+                execute_scripts(POSTMSM_SCRIPT_DIR, &error);
+                SHOW_ERROR(error);
+            }
+
+            sNeedToRunPostScripts = false;
         }
-
-        sNeedToRunPostScripts = false;
 
         SignalMSMAvailChange( lsh, false );
 
@@ -270,24 +289,26 @@ handle_mount_on_host(LSHandle *lsh, bool mount)
     if ( !mount ) {
         nyx_mass_storage_mode_return_code_t ret_status;
 
-    nyx_mass_storage_mode_set_mode(nyxMassStorageMode, NYX_MASS_STORAGE_MODE_DISABLE, &ret_status);
+        nyx_mass_storage_mode_set_mode(nyxMassStorageMode, NYX_MASS_STORAGE_MODE_DISABLE, &ret_status);
 
-    if(ret_status == NYX_MASS_STORAGE_MODE_MOUNT_FAILURE) {
-        SignalMSMFscking(lsh);
-        nyx_mass_storage_mode_set_mode(nyxMassStorageMode, NYX_MASS_STORAGE_MODE_DISABLE_AFTER_FSCK, &ret_status);
-        }
+        if ( !sMtpMode ) {
+            if(ret_status == NYX_MASS_STORAGE_MODE_MOUNT_FAILURE) {
+                SignalMSMFscking(lsh);
+                nyx_mass_storage_mode_set_mode(nyxMassStorageMode, NYX_MASS_STORAGE_MODE_DISABLE_AFTER_FSCK, &ret_status);
+            }
 
-        handle_mass_storage_mode_exit(ret_status, lsh);
+            handle_mass_storage_mode_exit(ret_status, lsh);
 
-        if (sNeedToRunPostScripts) {
-            execute_scripts(POSTMSM_SCRIPT_DIR, &error);
-            SHOW_ERROR(error);
+            if (sNeedToRunPostScripts) {
+                execute_scripts(POSTMSM_SCRIPT_DIR, &error);
+                SHOW_ERROR(error);
+            }
+
+            sNeedToRunPostScripts = false;
         }
 
         inMSM = false;
         SignalMSMStatus ( lsh, false);
-
-        sNeedToRunPostScripts = false;
     }
 }
 
@@ -385,6 +406,22 @@ begin_mass_storage_mode_transition( LSHandle* lsh )
     inMSM = true;
     SignalMSMStatus ( lsh, true);
     SignalMSMProgress( lsh, MSM_MODE_CHANGE_ATTEMPTING, false );
+
+    if ( sMtpMode ) {
+        /* MTP serves /media/internal while it stays mounted: no partition to
+         * unmount and no open-file owners to wait for, so enable straight
+         * away (this starts umtprd via the nyx MTP module). */
+        nyx_mass_storage_mode_return_code_t ret_status = 0;
+        nyx_error_t ret = nyx_mass_storage_mode_set_mode( nyxMassStorageMode,
+                NYX_MASS_STORAGE_MODE_ENABLE, &ret_status );
+        if ( ret == NYX_ERROR_NONE ) {
+            SignalMSMProgress( lsh, MSM_MODE_CHANGE_SUCCEEDED, false );
+        } else {
+            g_message( "Aborting MTP mode due to return code : %d", ret_status );
+            abort_mass_storage_mode_transition( lsh );
+        }
+        return;
+    }
 
     GError * error = NULL;
     execute_scripts(PREMSM_SCRIPT_DIR, &error);

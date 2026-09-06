@@ -59,6 +59,16 @@ unset(NYXLIB_MAJOR)
 
 webos_add_compiler_flags(ALL -Wall)
 
+# Serve storage mode over MTP (umtprd via the nyx MTP module) rather than the
+# legacy block-device export. When enabled, storaged keeps /media/internal
+# mounted and skips the unmount/fsck/pre-post-script dance. LuneOS ships the
+# MTP nyx module on all devices, so this defaults ON; set -DUSE_MTP=OFF for the
+# legacy Mass Storage Mode behaviour.
+option(USE_MTP "Serve storage mode over MTP instead of block-device export" ON)
+if(USE_MTP)
+	add_definitions(-DUSE_MTP)
+endif()
+
 # Require that all undefined symbols are satisfied by the libraries from target_link_libraries()
 webos_add_linker_options(ALL --no-undefined)
 
