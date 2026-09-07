@@ -16,8 +16,8 @@
 *
 * LICENSE@@@ */
 
-#ifndef _SIGNALS_H_
-#define _SIGNALS_H_
+#ifndef STORAGED_SIGNALS_H
+#define STORAGED_SIGNALS_H
 
 #include <stdbool.h>
 #include <luna-service2/lunaservice.h>
@@ -168,4 +168,4 @@ void SignalPartitionAvail( LSHandle* lsh, const char* mountPoint, bool avail,
 
 void SignalMSMStatus( LSHandle* lsh, bool inMSM);
 
-#endif  /* _SIGNALS_H_ */
+#endif  /* STORAGED_SIGNALS_H */

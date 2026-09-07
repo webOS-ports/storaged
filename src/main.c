@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <glib.h>
+#include <glib-unix.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -35,6 +36,7 @@
 #include "signals.h"
 #include "log.h"
 #include "main.h"
+#include "util.h"
 
 /*
  * Notes on what storaged does
@@ -67,7 +69,7 @@
  */
 
 static GMainLoop * g_mainloop = NULL;
-static int sTimerEventSource = 0;
+static guint sTimerEventSource = 0;
 
 
 /***********************************************************************
@@ -92,7 +94,7 @@ static LockFile	sProcessLock;
  *
  * @return true on success, false if failed.
  */
-bool LockProcess(const char* component)
+static bool LockProcess(const char* component)
 {
 #define LOCKS_DIR_PATH "/tmp/run"
 
@@ -109,8 +111,9 @@ bool LockProcess(const char* component)
 
     snprintf(lock->path, sizeof(lock->path), "%s/%s.pid", LOCKS_DIR_PATH, component);
 
-    // open or create the lock file
-    fd = open(lock->path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    // open or create the lock file; O_NOFOLLOW guards against a symlink
+    // planted in the world-writable lock directory
+    fd = open(lock->path, O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC, S_IRUSR | S_IWUSR);
     if (fd < 0)
     {
         g_error("Failed to open lock file (err %d, %s), exiting.", errno, strerror(errno));
@@ -155,7 +158,7 @@ bool LockProcess(const char* component)
  * Release the lock on the pid file as previously acquired by
  * LockProcess.
  */
-void UnlockProcess(void)
+static void UnlockProcess(void)
 {
     LockFile* lock;
 
@@ -166,20 +169,21 @@ void UnlockProcess(void)
 
 
 
-void
-term_handler(int signal)
+static gboolean
+term_handler(gpointer data)
 {
     g_main_loop_quit(g_mainloop);
+    return G_SOURCE_REMOVE;
 }
 
-gboolean
+static gboolean
 timeout_handler(gpointer data)
 {
     g_main_loop_quit(g_mainloop);
     return TRUE;
 }
 
-void
+static void
 PrintUsage(const char* progname)
 {
     printf("%s\n", progname);
@@ -192,7 +196,7 @@ PrintUsage(const char* progname)
 #define DYNAMIC_LIFETIME_MS 10000
 
 void
-disable_lifetime_timer()
+disable_lifetime_timer(void)
 {
     g_debug("%s called", __func__);
     if (sTimerEventSource != 0)
@@ -203,7 +207,7 @@ disable_lifetime_timer()
 
 //TODO: need to call this from erase API's aswell
 void
-reset_lifetime_timer()
+reset_lifetime_timer(void)
 {
     g_debug("%s called", __func__);
     disable_lifetime_timer();
@@ -264,9 +268,10 @@ main(int argc, char **argv)
     g_log_set_default_handler(logFilter, NULL);
     g_debug( "entering %s in %s", __func__, __FILE__ );
 
-    signal(SIGTERM, term_handler);
-
     g_mainloop = g_main_loop_new(NULL, FALSE);
+
+    /* dispatched from the main loop rather than from async signal context */
+    g_unix_signal_add(SIGTERM, term_handler, NULL);
 
 
     int ret = nyx_device_open(NYX_DEVICE_SYSTEM, "Main", &nyxSystem);
