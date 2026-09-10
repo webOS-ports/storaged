@@ -68,7 +68,7 @@ add_definitions(-DPOSTMSM_SCRIPT_DIR="${WEBOS_INSTALL_SYSCONFDIR}/storaged/post_
 
 # Build the storaged executable
 
-add_executable(storaged src/diskmode.c src/erase.c src/log.c src/main.c src/signals.c src/util.c)
+add_executable(storaged src/diskmode.c src/erase.c src/log.c src/main.c src/signals.c src/util.c src/volumes.c)
 target_link_libraries(storaged 
                         ${GLIB2_LDFLAGS} 
                         ${LUNASERVICE2_LDFLAGS}

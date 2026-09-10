@@ -15,7 +15,8 @@
         "com.palm.storage/storaged/MSMProgress",
         "com.palm.storage/storaged/MSMEntry",
         "com.palm.storage/storaged/MSMFscking",
-        "com.palm.storage/storaged/MSMStatus"
+        "com.palm.storage/storaged/MSMStatus",
+        "com.palm.storage/volumes/getSpaceInfo",
+        "com.palm.storage/volumes/getEncryptionStatus"
     ]
 }
-
