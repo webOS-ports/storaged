@@ -33,6 +33,7 @@
 
 #include "diskmode.h"
 #include "erase.h"
+#include "volumes.h"
 #include "signals.h"
 #include "log.h"
 #include "main.h"
@@ -312,6 +313,7 @@ main(int argc, char **argv)
 
     DiskModeInterfaceInit( g_mainloop, lsps, invertCarrier );
     EraseInit(g_mainloop, lsps);
+    VolumesInit(g_mainloop, lsps);
 
     retVal = LSGmainAttach( lsps, g_mainloop, &lserror );
     if ( !retVal )
