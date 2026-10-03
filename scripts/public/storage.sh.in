@@ -32,6 +32,16 @@ DbgPrint "$0($1,$2) called: "
 action="$1"
 change="$2"
 
+# luneos-mtp-gadget (umtprd) rebinds the USB gadget to add or remove MTP, and
+# the UDC reports that as a disconnect and a reconnect. Passing those on made
+# storaged treat them as the cable being pulled and plugged back in: it left
+# File Transfer, and the system UI popped up "USB connected" again. The gadget
+# script holds this marker across every rebind it does.
+if [ "$action" == "HOST_STATE_CHANGED" ] && [ -e /run/luneos-mtp/reconfiguring ]; then
+    DbgPrint "ignoring $action $change: USB gadget is being reconfigured for MTP"
+    exit 0
+fi
+
 if [ "$action" == "HOST_STATE_CHANGED" ]; then
     method="changed"
     change_name="connected"
