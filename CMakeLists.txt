@@ -75,6 +75,17 @@ target_link_libraries(storaged
                         ${JSON_LDFLAGS}
                         ${NYXLIB_LDFLAGS})
 webos_build_program(ADMIN)
+
+# Host/target-runnable unit tests: -DSTORAGED_BUILD_TESTS=ON, then ctest.
+option(STORAGED_BUILD_TESTS "Build the unit tests" OFF)
+if(STORAGED_BUILD_TESTS)
+	enable_testing()
+	add_executable(test_enter_msm tests/test_enter_msm.c)
+	target_compile_options(test_enter_msm PRIVATE -Wno-unused-parameter)
+	target_link_libraries(test_enter_msm ${GLIB2_LDFLAGS} ${JSON_LDFLAGS})
+	add_test(NAME enter_msm COMMAND test_enter_msm)
+endif()
+
 webos_build_system_bus_files()
 
 webos_configure_source_files(configuredfile scripts/public/storage.sh)
