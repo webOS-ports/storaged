@@ -52,6 +52,8 @@ static bool inMSM = false, unmount = false;
 #define TIMEOUT_SECONDS 10  /* how many seconds of inactivity before quitting */
 #define MSM_WAIT_SECONDS 3  /* how long to wait for open file owners to quit */
 #define MEDIA_INTERNAL "/media/internal"
+#define LOCK_STATUS_URI "luna://com.palm.display/control/lockStatus"
+#define LOCK_STATUS_TIMEOUT_MS 5000
 
 #define ETC_FSTAB    "/etc/fstab"
 #define MAX_FSCK_RETRIES 3 // number of times to try running fsck before giving up
@@ -458,6 +460,98 @@ send:
 }
 
 /**
+ * @brief true only for an answer that says the screen is unlocked. Everything
+ * else, a bus error and a timeout included, counts as locked.
+ */
+static bool
+is_unlocked_reply( const char* payload )
+{
+    bool unlocked = false;
+    struct json_object *state = NULL;
+    struct json_object *object = payload ? json_tokener_parse( payload ) : NULL;
+
+    if ( object && json_object_object_get_ex( object, "lockState", &state )
+         && json_object_is_type( state, json_type_string ) ) {
+        unlocked = ( 0 == strcmp( json_object_get_string( state ), "unlocked" ) );
+    }
+
+    if (object)
+        json_object_put(object);
+
+    return unlocked;
+}
+
+/**
+ * @brief the screen's lock state came in: enter Mass Storage Mode, which gives
+ * the USB host /media/internal, only on a device the user has unlocked.
+ */
+static bool
+handle_lock_status_reply( LSHandle* lsh, LSMessage* reply, void* ctx )
+{
+    LSTRACE_LSMESSAGE(reply);
+
+    LSMessage* request = ctx;
+    const char* answer = "{\"result\": true}";
+
+    LSError lserror;
+    LSErrorInit( &lserror );
+
+    if ( !is_unlocked_reply( LSMessageGetPayload( reply ) ) ) {
+        g_message( "not entering Mass Storage Mode: the device is locked" );
+        answer = "{\"result\": false, \"errorText\":\"device is locked\"}";
+    } else {
+        int mass_storage_mode_state = 0;
+        nyx_mass_storage_mode_get_state(nyxMassStorageMode, &mass_storage_mode_state);
+        bool connected = mass_storage_mode_state & NYX_MASS_STORAGE_MODE_HOST_CONNECTED;
+
+        if ( !connected ) {
+            g_debug( "not entering brick mode because no usb connection" );
+        } else {
+            begin_mass_storage_mode_transition( lsh );
+        }
+    }
+
+    if ( !LSMessageReply( lsh, request, answer, &lserror ) )
+    {
+        LSREPORT( lserror );
+    }
+
+    LSErrorFree( &lserror );
+    LSMessageUnref( request );
+    return true;
+}
+
+/**
+ * @brief asks for the screen's lock state; message is answered from
+ * handle_lock_status_reply. False if the question could not be sent.
+ */
+static bool
+query_lock_status( LSHandle* lsh, LSMessage* message )
+{
+    LSError lserror;
+    LSErrorInit( &lserror );
+
+    LSMessageToken token = LSMESSAGE_TOKEN_INVALID;
+
+    LSMessageRef( message );
+    if ( !LSCallOneReply( lsh, LOCK_STATUS_URI, "{}", handle_lock_status_reply,
+                          message, &token, &lserror ) ) {
+        LSREPORT( lserror );
+        LSErrorFree( &lserror );
+        LSMessageUnref( message );
+        return false;
+    }
+
+    /* The timeout arrives as an error reply, which counts as locked. */
+    if ( !LSCallSetTimeout( lsh, token, LOCK_STATUS_TIMEOUT_MS, &lserror ) ) {
+        LSREPORT( lserror );
+    }
+
+    LSErrorFree( &lserror );
+    return true;
+}
+
+/**
  * @brief 
  */
 static bool
@@ -482,15 +576,10 @@ handle_enter_mass_storage_mode( LSHandle* lsh, LSMessage* message, void* user_da
     confirmed = json_object_get_boolean(json_object_object_get(object, "user-confirmed"));
     if ( confirmed )
     {
-        int mass_storage_mode_state = 0;
-        nyx_mass_storage_mode_get_state(nyxMassStorageMode, &mass_storage_mode_state);
-        bool connected = mass_storage_mode_state & NYX_MASS_STORAGE_MODE_HOST_CONNECTED;
-
-        if ( !connected ) {
-            g_debug( "not entering brick mode because no usb connection" );
-        } else {
-            begin_mass_storage_mode_transition( lsh );
+        if ( !query_lock_status( lsh, message ) ) {
+            errStr = "device is locked";
         }
+        goto err;
     }
 
     if ( !LSMessageReply( lsh, message, "{\"result\": true}", &lserror ) )
