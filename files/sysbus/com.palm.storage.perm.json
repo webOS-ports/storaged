@@ -1,6 +1,7 @@
 {
     "com.palm.storage": [ 
-        "storaged.operation"
+        "storaged.operation",
+        "display.query"
     ]
 }
 
