@@ -70,7 +70,6 @@
  */
 
 static GMainLoop * g_mainloop = NULL;
-static guint sTimerEventSource = 0;
 
 
 /***********************************************************************
@@ -177,13 +176,6 @@ term_handler(gpointer data)
     return G_SOURCE_REMOVE;
 }
 
-static gboolean
-timeout_handler(gpointer data)
-{
-    g_main_loop_quit(g_mainloop);
-    return TRUE;
-}
-
 static void
 PrintUsage(const char* progname)
 {
@@ -192,28 +184,6 @@ PrintUsage(const char* progname)
            " -c invert is-carrier test\n"
            " -d turn debug logging on\n"
            " -s logging via syslog\n");
-}
-
-#define DYNAMIC_LIFETIME_MS 10000
-
-void
-disable_lifetime_timer(void)
-{
-    g_debug("%s called", __func__);
-    if (sTimerEventSource != 0)
-        g_source_remove(sTimerEventSource);
-
-    sTimerEventSource = 0;
-}
-
-//TODO: need to call this from erase API's aswell
-void
-reset_lifetime_timer(void)
-{
-    g_debug("%s called", __func__);
-    disable_lifetime_timer();
-    sTimerEventSource = g_timeout_add_full(G_PRIORITY_DEFAULT, DYNAMIC_LIFETIME_MS, timeout_handler, NULL, NULL);
-    g_debug("%s: timeout set", __func__);
 }
 
 static nyx_device_handle_t nyxSystem = NULL;
