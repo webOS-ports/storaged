@@ -171,9 +171,6 @@ handle_cable( LSHandle* lsh, bool plugIn) {
             /* Tell the world */
             SignalMSMAvailChange( lsh, true );
         }
-
-        // must not shut down
-        disable_lifetime_timer();
     } else {
         /* We've just lost a connection we had: cable was unplugged */
         if (sUmountTimerId != 0) {
@@ -197,9 +194,6 @@ handle_cable( LSHandle* lsh, bool plugIn) {
         sNeedToRunPostScripts = false;
 
         SignalMSMAvailChange( lsh, false );
-
-        // can now shut down
-        reset_lifetime_timer();
     }
 }
 

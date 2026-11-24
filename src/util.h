@@ -21,11 +21,6 @@
 
 #include <glib.h>
 
-
-void disable_lifetime_timer(void);
-
-void reset_lifetime_timer(void);
-
 #define LSREPORT(lse) g_critical( "in %s: %s => %s", __func__, \
                                   (lse).func, (lse).message )
 

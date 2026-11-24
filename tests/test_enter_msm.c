@@ -104,8 +104,6 @@ nyx_error_t nyx_mass_storage_mode_register_change_callback(nyx_device_handle_t h
 }
 
 nyx_device_handle_t GetNyxMassStorageModeDevice(void) { return NULL; }
-void disable_lifetime_timer(void) {}
-void reset_lifetime_timer(void) {}
 
 void SignalMSMAvailChange(LSHandle *lsh, bool avail) {}
 void SignalMSMProgress(LSHandle *lsh, const char *stage, bool forceRequired) {}
